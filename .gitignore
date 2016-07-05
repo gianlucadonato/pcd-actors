@@ -1,0 +1,13 @@
+# IntelliJ files
+.idea
+*.iml
+
+# System stuff
+Thumb.db
+.DS_STORE
+
+# Maven build
+target
+
+# Java bytecode
+.class
