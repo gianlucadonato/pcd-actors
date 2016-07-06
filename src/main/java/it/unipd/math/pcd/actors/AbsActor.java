@@ -37,6 +37,11 @@
  */
 package it.unipd.math.pcd.actors;
 
+import it.unipd.math.pcd.actors.exceptions.NoSuchActorException;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * Defines common properties of all actors.
  *
@@ -45,6 +50,11 @@ package it.unipd.math.pcd.actors;
  * @since 1.0
  */
 public abstract class AbsActor<T extends Message> implements Actor<T> {
+
+    /**
+     * Mailbox of the current actor.
+     */
+    private final ExecutorService mailbox = Executors.newSingleThreadExecutor();
 
     /**
      * Self-reference of the actor
@@ -65,5 +75,44 @@ public abstract class AbsActor<T extends Message> implements Actor<T> {
     protected final Actor<T> setSelf(ActorRef<T> self) {
         this.self = self;
         return this;
+    }
+
+    /**
+     * Sets the sender of the current message.
+     *
+     * @param ref The sender reference
+     */
+    public void setSender(ActorRef<T> ref) {
+        this.sender = ref;
+    }
+
+    /**
+     * Adds a new message to the Actor's mailbox.
+     *
+     * @param msg The message
+     * @param sender The sender reference
+     */
+    protected void pushMessage(final T msg, final ActorRef<T> sender) throws NoSuchActorException {
+        if(!mailbox.isShutdown()) {
+            mailbox.execute(new Runnable(){
+                @Override
+                public void run() {
+                    setSender(sender);
+                    receive(msg);
+                }
+            });
+        } else {
+            throw new NoSuchActorException();
+        }
+    }
+
+    /**
+     * Shutdown the actor's mailbox.
+     */
+    public void shutdown() throws NoSuchActorException {
+        if(!mailbox.isShutdown())
+            mailbox.shutdown();
+        else
+            throw new NoSuchActorException();
     }
 }

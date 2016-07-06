@@ -39,7 +39,9 @@ package it.unipd.math.pcd.actors;
 
 import it.unipd.math.pcd.actors.exceptions.NoSuchActorException;
 
+import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A map-based implementation of the actor system.
@@ -54,6 +56,10 @@ public abstract class AbsActorSystem implements ActorSystem {
      * Associates every Actor created with an identifier.
      */
     private Map<ActorRef<?>, Actor<?>> actors;
+
+    public AbsActorSystem() {
+        actors = new ConcurrentHashMap<>();
+    }
 
     @Override
     public ActorRef<? extends Message> actorOf(Class<? extends Actor> actor, ActorMode mode) {
@@ -77,6 +83,47 @@ public abstract class AbsActorSystem implements ActorSystem {
     @Override
     public ActorRef<? extends Message> actorOf(Class<? extends Actor> actor) {
         return this.actorOf(actor, ActorMode.LOCAL);
+    }
+
+    /**
+     * Gets all the Actors instances
+     *
+     * @return A Collection of actors
+     */
+    protected Collection<Actor<?>> getActorsValues() {
+        return actors.values();
+    }
+
+    /**
+     * Gets all the Actors keys
+     *
+     * @return A Collection of keys
+     */
+    protected Collection<ActorRef<?>> getActorsKeySet() {
+        return actors.keySet();
+    }
+
+    /**
+     * Gets an Actor instance giving the underlying ActorRef
+     *
+     * @param ref The ActorRef instance
+     * @return The Actor instance
+     * @throws NoSuchActorException
+     */
+    protected Actor<?> getActor(ActorRef<?> ref) throws NoSuchActorException {
+        if(actors.containsKey(ref))
+            return actors.get(ref);
+        else
+            throw new NoSuchActorException();
+    }
+
+    /**
+     * Removes an Actor from the actors map
+     *
+     * @param ref The key that needs to be removed
+     */
+    protected void removeActor(ActorRef<?> ref) {
+        actors.remove(ref);
     }
 
     protected abstract ActorRef createActorReference(ActorMode mode);
